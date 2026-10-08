@@ -9,10 +9,44 @@
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;color:var(--ink);font:500 16px/1.55 "Zen Maru Gothic","Hiragino Maru Gothic ProN",system-ui,sans-serif;
- background:linear-gradient(#ffe3ec 0,#ffd0df 340px,var(--cream) 900px) fixed;overflow-x:hidden;cursor:default}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;
- background:radial-gradient(circle,var(--pink) 1.3px,transparent 1.6px) 0 0/14px 14px;
+ background:linear-gradient(#1b0b3a 0,#4a1f7a 28%,#a2428f 58%,#ff7aa5 82%,#ffc3a0 100%) fixed;overflow-x:hidden;cursor:default}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.22;
+ background:radial-gradient(circle,#fff 1.3px,transparent 1.6px) 0 0/14px 14px;
  -webkit-mask-image:linear-gradient(#000,transparent 55%);mask-image:linear-gradient(#000,transparent 55%)}
+
+/* anime scene */
+#scene{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+#scene .px{position:absolute;will-change:translate}
+#stars{inset:-24px}
+.star{position:absolute;border-radius:50%;background:#fff;animation:tw 3s ease-in-out infinite}
+@keyframes tw{50%{opacity:.15;scale:.5}}
+.sp{position:absolute;color:#fff;text-shadow:0 0 8px #fff,0 0 16px #ffd6f0;animation:spk 3.4s ease-in-out infinite}
+@keyframes spk{0%,100%{opacity:.2;scale:.6;rotate:0deg}50%{opacity:1;scale:1.2;rotate:45deg}}
+.moon{right:9%;top:7%;width:clamp(110px,21vw,250px);aspect-ratio:1;border-radius:50%;
+ background:radial-gradient(circle at 36% 34%,#fffdf0 0,#ffefb8 55%,#ffd88a 100%);
+ box-shadow:0 0 50px 16px rgba(255,240,180,.55),0 0 150px 60px rgba(255,150,200,.35)}
+.moon::before{content:"";position:absolute;inset:0;border-radius:50%;opacity:.5;
+ background:radial-gradient(circle at 30% 62%,#e9c97c 0 9%,transparent 10%),radial-gradient(circle at 62% 30%,#e9c97c 0 6%,transparent 7%),radial-gradient(circle at 66% 68%,#e9c97c 0 11%,transparent 12%)}
+.moon::after{content:"";position:absolute;inset:-40%;border-radius:50%;background:radial-gradient(circle,rgba(255,225,240,.4),transparent 62%);animation:halo 5s ease-in-out infinite}
+@keyframes halo{50%{scale:1.15;opacity:.6}}
+.cloud{position:absolute;height:44px;width:170px;border-radius:44px;background:rgba(255,236,246,.55);filter:blur(1px);animation:drift 120s linear infinite}
+.cloud::before,.cloud::after{content:"";position:absolute;border-radius:50%;background:inherit}
+.cloud::before{width:70px;height:70px;left:24px;top:-34px}
+.cloud::after{width:52px;height:52px;left:84px;top:-24px}
+@keyframes drift{from{transform:translateX(-360px)}to{transform:translateX(calc(100vw + 360px))}}
+.shoot{position:absolute;left:78%;width:150px;height:2px;border-radius:2px;background:linear-gradient(90deg,#fff,rgba(255,255,255,0));opacity:0;box-shadow:0 0 8px #fff;animation:shoot 7s linear infinite}
+@keyframes shoot{0%{transform:translate(0,0) rotate(-25deg);opacity:0}2%{opacity:1}11%{transform:translate(-520px,245px) rotate(-25deg);opacity:0}100%{opacity:0}}
+.mist{position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(transparent,rgba(255,130,180,.3))}
+.skyline{position:absolute;bottom:0;left:-30px;width:calc(100% + 60px);height:clamp(150px,30vh,300px)}
+.win{animation:wf 6s steps(1) infinite}
+@keyframes wf{0%,90%{opacity:1}93%{opacity:.2}96%{opacity:1}}
+.hh{font-size:22px;fill:#ff6fa5;opacity:0;animation:hh 5s ease-in infinite}
+@keyframes hh{0%{translate:0 0;opacity:0}15%{opacity:.95}100%{translate:10px -120px;opacity:0}}
+.dot{animation:dt 1.4s infinite}
+@keyframes dt{0%,100%{opacity:.25}50%{opacity:1}}
+.ph{filter:drop-shadow(0 0 6px #8ff)}
+.pony{transform-box:fill-box;transform-origin:right center;animation:sway 2.6s ease-in-out infinite}
+@keyframes sway{50%{rotate:-8deg}}
 #petals{position:fixed;inset:0;pointer-events:none;z-index:1}
 .wrap{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:26px 18px 140px}
 .sfx{font-family:Bangers,Impact,sans-serif;letter-spacing:2px}
@@ -77,16 +111,61 @@ h2{font:400 clamp(34px,6vw,52px) Bangers,sans-serif;letter-spacing:2px;margin:70
 .rank div:last-child{border:0}
 .rank .n{font:400 24px Bangers,sans-serif;color:var(--pink)}
 .rank div:first-child .n::after{content:" ♛";color:var(--gold);-webkit-text-stroke:1px var(--ink)}
-footer{margin-top:50px;text-align:center;font-weight:700;font-size:13px;opacity:.7}
+footer{margin-top:50px;text-align:center;font-weight:700;font-size:13px;color:#fff;opacity:.85;text-shadow:0 1px 6px rgba(26,11,58,.8)}
 
 /* narrator */
 #nar{position:fixed;left:14px;bottom:14px;z-index:20;max-width:min(330px,calc(100vw - 28px));display:flex;gap:10px;align-items:flex-end;pointer-events:none}
-#nar .face{flex:none;width:56px;height:56px;border-radius:50%;background:var(--pink);border:3.5px solid var(--ink);display:grid;place-items:center;font:400 30px Bangers,sans-serif;color:#fff;box-shadow:3px 3px 0 var(--ink)}
+#nar .face{flex:none;width:64px;height:64px;border-radius:50%;background:var(--blush);border:3.5px solid var(--ink);overflow:hidden;box-shadow:3px 3px 0 var(--ink);animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{50%{translate:0 -4px}}
+#nar .face svg{display:block;width:100%;height:100%}
+#nar .eyes{transform-origin:28px 34px;animation:blink 4.5s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
 #nar .b{background:#fff;border:3px solid var(--ink);border-radius:16px 16px 16px 2px;padding:8px 13px;font-weight:700;font-size:13.5px;box-shadow:4px 4px 0 var(--ink);animation:pop .3s cubic-bezier(.2,2,.4,1)}
 @keyframes pop{from{scale:.6;opacity:0}}
 .fx{position:fixed;z-index:50;pointer-events:none;font-weight:900;color:var(--pink);-webkit-text-stroke:1px var(--ink);user-select:none}
+@media(max-width:600px){.doki{display:none}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
+<div id="scene" aria-hidden="true">
+ <div class="px" id="stars" data-d="-8"></div>
+ <div class="px moon" data-d="-18"></div>
+ <div class="px" data-d="-10" style="inset:0">
+  <div class="cloud" style="top:12%;animation-duration:140s;animation-delay:-40s"></div>
+  <div class="cloud" style="top:26%;width:130px;opacity:.7;animation-duration:105s;animation-delay:-80s"></div>
+  <div class="cloud" style="top:38%;width:200px;opacity:.5;animation-duration:170s;animation-delay:-10s"></div>
+ </div>
+ <div class="shoot" style="top:6%"></div>
+ <div class="shoot" style="top:18%;left:92%;animation-delay:3.6s;animation-duration:9s"></div>
+ <div class="mist"></div>
+ <svg class="px skyline" id="cityB" data-d="6" viewBox="0 0 1600 300" preserveAspectRatio="xMidYMax slice"></svg>
+ <svg class="px skyline" id="cityF" data-d="14" viewBox="0 0 1600 300" preserveAspectRatio="xMidYMax slice"></svg>
+ <svg class="px skyline" data-d="22" viewBox="0 0 1600 300" preserveAspectRatio="xMaxYMax slice">
+  <rect x="0" y="262" width="1600" height="40" fill="#120720"/>
+  <rect x="0" y="259" width="1600" height="4" fill="#3a1a5c"/>
+  <!-- she is typing... -->
+  <g>
+   <rect x="1286" y="160" width="46" height="24" rx="12" fill="#fff" opacity=".92"/>
+   <path d="M1312 184l6 8-12-3z" fill="#fff" opacity=".92"/>
+   <circle class="dot" cx="1299" cy="172" r="3" fill="#ff4f87"/>
+   <circle class="dot" cx="1309" cy="172" r="3" fill="#ff4f87" style="animation-delay:.25s"/>
+   <circle class="dot" cx="1319" cy="172" r="3" fill="#ff4f87" style="animation-delay:.5s"/>
+  </g>
+  <!-- her -->
+  <path class="pony" d="M1318 205q-34-8-56 10q26 0 44 17z" fill="#120720"/>
+  <circle cx="1330" cy="212" r="14" fill="#120720"/>
+  <path d="M1316 226q14-7 28 0l7 36h-42z" fill="#120720"/>
+  <rect class="ph" x="1346" y="238" width="8" height="12" rx="2" fill="#bff"/>
+  <!-- him -->
+  <path d="M1485 206l5-15 5 10 6-13 5 11 8-9-1 16z" fill="#120720"/>
+  <circle cx="1500" cy="212" r="15" fill="#120720"/>
+  <path d="M1484 228q16-7 32 0l5 34h-42z" fill="#120720"/>
+  <rect class="ph" x="1474" y="240" width="8" height="12" rx="2" fill="#bff"/>
+  <!-- the gap between them -->
+  <text class="hh" x="1405" y="238">♥</text>
+  <text class="hh" x="1420" y="238" style="animation-delay:1.7s">♥</text>
+  <text class="hh" x="1412" y="238" style="animation-delay:3.4s">♡</text>
+ </svg>
+</div>
 <canvas id="petals"></canvas>
 <div class="wrap">
  <header class="hero">
@@ -103,7 +182,16 @@ footer{margin-top:50px;text-align:center;font-weight:700;font-size:13px;opacity:
  <div class="rank" id="board"></div>
  <footer>Scores reset when the server naps. Be kind to the heartbroken server.</footer>
 </div>
-<div id="nar"><div class="face">♥</div><div class="b" id="say">Oh... you came. Pick a name and find your match.</div></div>
+<div id="nar"><div class="face"><svg viewBox="0 0 56 56" aria-hidden="true">
+ <path d="M7 34C5 6 51 6 49 34L47 56H9z" fill="#3b1c6e"/>
+ <circle cx="28" cy="31" r="19" fill="#ffe6d8"/>
+ <path d="M9 31C8 12 48 12 47 31 42 23 36 21 33 25 30 20 22 21 20 26 16 21 12 25 9 31z" fill="#3b1c6e"/>
+ <path d="M28 14q-5-9 3-11-5 5 1 11" fill="none" stroke="#3b1c6e" stroke-width="2" stroke-linecap="round"/>
+ <g class="eyes"><ellipse cx="21" cy="35" rx="3.8" ry="5.2" fill="#2a1346"/><ellipse cx="35" cy="35" rx="3.8" ry="5.2" fill="#2a1346"/>
+  <circle cx="22.3" cy="33" r="1.7" fill="#fff"/><circle cx="36.3" cy="33" r="1.7" fill="#fff"/><circle cx="20" cy="37" r=".8" fill="#fff"/><circle cx="34" cy="37" r=".8" fill="#fff"/></g>
+ <ellipse cx="14.5" cy="42" rx="3.2" ry="1.7" fill="#ff9fbd" opacity=".75"/><ellipse cx="41.5" cy="42" rx="3.2" ry="1.7" fill="#ff9fbd" opacity=".75"/>
+ <path d="M25 45q3 3 6 0" fill="none" stroke="#c0446e" stroke-width="1.5" stroke-linecap="round"/>
+</svg></div><div class="b" id="say">Oh... you came. Pick a name and find your match.</div></div>
 <script>
 const $=s=>document.querySelector(s),RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
 const nick=$('#nick');nick.value=localStorage.getItem('nick')||'';
@@ -178,6 +266,36 @@ addEventListener('mousemove',e=>{
  h.style.cssText+=`left:${e.clientX}px;top:${e.clientY}px;font-size:${10+Math.random()*10}px`;document.body.appendChild(h);
  h.animate([{transform:'translateY(0) scale(1)',opacity:.9},{transform:'translateY(-34px) scale(.3)',opacity:0}],{duration:800}).onfinish=()=>h.remove();
 });
+
+/* anime scene */
+(function(){
+ const R=Math.random;
+ let h='';
+ for(let i=0;i<110;i++){const s=1+R()*2;h+=`<div class="star" style="left:${R()*100}%;top:${R()*64}%;width:${s}px;height:${s}px;animation-duration:${2+R()*3}s;animation-delay:-${R()*5}s"></div>`}
+ for(let i=0;i<9;i++){h+=`<span class="sp" style="left:${R()*100}%;top:${R()*50}%;font-size:${11+R()*10}px;animation-delay:-${R()*4}s">✦</span>`}
+ $('#stars').innerHTML=h;
+ function city(el,fill,op,win,minH,varH){
+  let x=-10,s='';
+  while(x<1620){
+   const w=44+R()*70|0,ht=minH+R()*varH|0;
+   s+=`<rect x="${x}" y="${300-ht}" width="${w+1}" height="${ht}" fill="${fill}" opacity="${op}"/>`;
+   if(R()<.25)s+=`<rect x="${x+w/2|0}" y="${300-ht-18}" width="2" height="18" fill="${fill}" opacity="${op}"/>`;
+   if(win)for(let wy=300-ht+14;wy<286;wy+=20)for(let wx=x+8;wx<x+w-10;wx+=14)
+    if(R()<.3)s+=`<rect class="win" style="animation-delay:-${(R()*6).toFixed(1)}s" x="${wx}" y="${wy}" width="5" height="7" fill="#ffd98a"/>`;
+   x+=w;
+  }
+  el.innerHTML=s;
+ }
+ city($('#cityB'),'#6b3a98',.75,false,110,140);
+ city($('#cityF'),'#26103f',1,true,70,140);
+ if(!RM){
+  const px=[...document.querySelectorAll('.px')];let tx=0,ty=0,cx0=0,cy0=0;
+  addEventListener('mousemove',e=>{tx=e.clientX/innerWidth-.5;ty=e.clientY/innerHeight-.5});
+  (function par(){cx0+=(tx-cx0)*.06;cy0+=(ty-cy0)*.06;
+   px.forEach(el=>{const d=+el.dataset.d;el.style.translate=`${cx0*d}px ${cy0*d*.6}px`});
+   requestAnimationFrame(par)})();
+ }
+})();
 
 fetch('/api/challenges').then(r=>r.json()).then(c=>{chs=c;paint()});board();setInterval(board,15000);
 </script></body></html>
