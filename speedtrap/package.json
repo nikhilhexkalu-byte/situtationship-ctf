@@ -1,0 +1,7 @@
+{
+  "name": "speedtrap-ctf",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}

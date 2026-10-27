@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speed Trap — CyberHeist CTF</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Fredoka:wght@400;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; }
+
+  body {
+    background: #080818;
+    color: #d8dce8;
+    font-family: 'Fredoka', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    user-select: none;
+  }
+
+  .container {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 20px;
+    max-width: 620px; width: 100%;
+    position: relative; z-index: 2;
+  }
+
+  h1 {
+    font-size: 2rem;
+    background: linear-gradient(135deg, #ff8800, #ff2d7b);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-align: center;
+  }
+  .subtitle {
+    color: #6a6a90; text-align: center;
+    font-size: 0.95rem; line-height: 1.6;
+  }
+  .subtitle strong { color: #ff8800; }
+
+  /* ── Speedometer Gauge ── */
+  .gauge-section {
+    width: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 8px;
+  }
+
+  .gauge-track {
+    width: 100%; height: 28px;
+    border-radius: 14px;
+    background: linear-gradient(90deg,
+      #ff2d4e 0%,
+      #ff2d4e 38%,
+      #39ff14 38%,
+      #39ff14 62%,
+      #ff2d4e 62%,
+      #ff2d4e 100%
+    );
+    position: relative;
+    border: 2px solid #1a1a40;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+    overflow: visible;
+  }
+
+  .gauge-needle {
+    position: absolute;
+    top: -6px; left: 0%;
+    width: 6px; height: 40px;
+    background: #00e5ff;
+    border-radius: 3px;
+    transform: translateX(-50%);
+    transition: left 0.3s ease-out;
+    box-shadow: 0 0 12px rgba(0,229,255,0.6);
+    z-index: 3;
+  }
+
+  .gauge-labels {
+    width: 100%;
+    display: flex; justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; color: #555580;
+    padding: 0 4px;
+  }
+  .gauge-labels .target { color: #39ff14; font-weight: 700; }
+
+  .wpm-display {
+    font-family: 'Space Mono', monospace;
+    font-size: 3rem; font-weight: 700;
+    color: #555580;
+    line-height: 1;
+    transition: color 0.3s;
+    text-align: center;
+  }
+  .wpm-display.in-zone { color: #39ff14; text-shadow: 0 0 20px rgba(57,255,20,0.4); }
+  .wpm-display.too-slow { color: #ff8800; }
+  .wpm-display.too-fast { color: #ff2d4e; }
+
+  .wpm-label {
+    font-size: 0.75rem; color: #555580;
+    letter-spacing: 3px; text-transform: uppercase;
+    text-align: center;
+  }
+
+  .zone-indicator {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    height: 20px;
+    transition: color 0.3s;
+    color: #333355;
+  }
+  .zone-indicator.slow { color: #ff8800; }
+  .zone-indicator.perfect { color: #39ff14; }
+  .zone-indicator.fast { color: #ff2d4e; }
+
+  /* ── Text Display ── */
+  .text-box {
+    background: #10102a;
+    border: 2px solid #1a1a40;
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+    min-height: 100px;
+    line-height: 2;
+    font-size: 1.15rem;
+    letter-spacing: 0.3px;
+    transition: border-color 0.3s;
+  }
+  .text-box.active { border-color: #333366; }
+  .text-box.done { border-color: #39ff14; }
+
+  .char {
+    font-family: 'Space Mono', monospace;
+    transition: all 0.1s;
+    border-radius: 2px;
+    padding: 1px 0;
+  }
+  .char.correct { color: #39ff14; }
+  .char.current {
+    background: #39ff1430;
+    color: #ffffff;
+    border-bottom: 2px solid #39ff14;
+    animation: blink-cursor 1s steps(1) infinite;
+  }
+  .char.wrong {
+    color: #ff2d4e;
+    background: #ff2d4e20;
+  }
+  .char.pending { color: #555580; }
+
+  @keyframes blink-cursor {
+    0%, 50% { border-bottom-color: #39ff14; }
+    51%, 100% { border-bottom-color: transparent; }
+  }
+
+  /* ── Start Prompt ── */
+  .start-prompt {
+    font-size: 0.9rem; color: #555580;
+    text-align: center;
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  /* ── Timer ── */
+  .timer {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem; color: #444466;
+  }
+
+  /* ── Result Box ── */
+  .result-box {
+    background: #10102a;
+    border: 2px solid #1a1a40;
+    border-radius: 16px;
+    padding: 24px 32px;
+    text-align: center;
+    width: 100%;
+    display: none;
+  }
+  .result-box.show { display: block; animation: pop-in 0.4s ease-out; }
+  .result-box.success { border-color: #39ff14; box-shadow: 0 0 40px rgba(57,255,20,0.15); }
+  .result-box.fail { border-color: #ff2d4e; box-shadow: 0 0 40px rgba(255,45,78,0.15); }
+  @keyframes pop-in { from { transform: scale(0.9); opacity: 0; } }
+
+  .result-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+  .result-title.success { color: #39ff14; }
+  .result-title.fail { color: #ff2d4e; }
+
+  .result-message { color: #8888aa; font-size: 0.95rem; margin-bottom: 12px; }
+
+  .flag-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem; color: #39ff14;
+    word-break: break-all;
+    padding: 10px; background: #0a0a18;
+    border-radius: 8px; margin-top: 8px;
+  }
+
+  .retry-btn {
+    margin-top: 16px;
+    padding: 10px 28px;
+    border-radius: 8px;
+    border: 2px solid #555580;
+    background: transparent;
+    color: #8888aa;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .retry-btn:hover { border-color: #00e5ff; color: #00e5ff; }
+
+  /* ── Background ── */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(57,255,20,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(57,255,20,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<div class="container">
+  <h1>⌨️ Speed Trap</h1>
+  <p class="subtitle">
+    The vault opens at <strong>EXACTLY 35 WPM</strong>.<br>
+    Not faster. Not slower. Precision is the key.
+  </p>
+
+  <!-- Gauge -->
+  <div class="gauge-section">
+    <div class="wpm-display" id="wpmDisplay">0</div>
+    <div class="wpm-label">words per minute</div>
+    <div class="gauge-track">
+      <div class="gauge-needle" id="gaugeNeedle"></div>
+    </div>
+    <div class="gauge-labels">
+      <span>0</span>
+      <span>15</span>
+      <span class="target">35</span>
+      <span>55</span>
+      <span>70+</span>
+    </div>
+    <div class="zone-indicator" id="zoneIndicator">waiting...</div>
+  </div>
+
+  <!-- Text to type -->
+  <div class="text-box" id="textBox">
+    <span style="color:#555580;">Loading challenge...</span>
+  </div>
+
+  <div class="start-prompt" id="startPrompt">Press any key to start typing...</div>
+  <div class="timer" id="timer"></div>
+
+  <!-- Result -->
+  <div class="result-box" id="resultBox">
+    <div class="result-title" id="resultTitle"></div>
+    <div class="result-message" id="resultMessage"></div>
+    <div class="flag-text" id="flagText" style="display:none;"></div>
+    <button class="retry-btn" id="retryBtn">Try Again</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  // ===== NO FLAGS IN THIS FILE — ALL SERVER-SIDE =====
+
+  const MAX_GAUGE_WPM = 70;
+  const TARGET_WPM = 35;
+  // Visual feedback zones — deliberately wider than real server tolerance
+  // so reading this code gives you NOTHING useful
+  const VISUAL_GREEN_LOW  = 27;
+  const VISUAL_GREEN_HIGH = 43;
+
+  // Progress receipt tracking
+  const PROGRESS_EVERY = 15;  // report every N chars
+  let receipts = [];
+  let progressPromises = [];
+  let typedChars = [];  // actual characters typed
+
+  let text = '';
+  let sessionToken = null;
+  let pos = 0;
+  let started = false;
+  let finished = false;
+  let startTime = 0;
+  let keystrokes = [];   // timestamps of correct keystrokes
+  let wpmInterval = null;
+  let charSpans = [];
+
+  const textBox       = document.getElementById('textBox');
+  const wpmDisplay    = document.getElementById('wpmDisplay');
+  const gaugeNeedle   = document.getElementById('gaugeNeedle');
+  const zoneIndicator = document.getElementById('zoneIndicator');
+  const startPrompt   = document.getElementById('startPrompt');
+  const timerEl       = document.getElementById('timer');
+  const resultBox     = document.getElementById('resultBox');
+  const resultTitle   = document.getElementById('resultTitle');
+  const resultMessage = document.getElementById('resultMessage');
+  const flagText      = document.getElementById('flagText');
+  const retryBtn      = document.getElementById('retryBtn');
+
+  // ── Init session ──
+  async function initSession() {
+    try {
+      const res  = await fetch('/api/session');
+      const data = await res.json();
+      sessionToken = data.token;
+      text = data.text;
+      renderText();
+    } catch(e) {
+      textBox.innerHTML = '<span style="color:#ff2d4e;">Failed to load. Refresh the page.</span>';
+    }
+  }
+
+  function renderText() {
+    textBox.innerHTML = '';
+    charSpans = [];
+    for (let i = 0; i < text.length; i++) {
+      const span = document.createElement('span');
+      span.className = 'char ' + (i === 0 ? 'current' : 'pending');
+      span.textContent = text[i];
+      textBox.appendChild(span);
+      charSpans.push(span);
+    }
+  }
+
+  // ── Gauge update ──
+  function updateGauge(wpm) {
+    const clamped = Math.min(Math.max(wpm, 0), MAX_GAUGE_WPM);
+    const pct = (clamped / MAX_GAUGE_WPM) * 100;
+    gaugeNeedle.style.left = pct + '%';
+
+    wpmDisplay.textContent = Math.round(wpm);
+
+    // Zone classes
+    wpmDisplay.className = 'wpm-display';
+    zoneIndicator.className = 'zone-indicator';
+
+    if (wpm >= VISUAL_GREEN_LOW && wpm <= VISUAL_GREEN_HIGH) {
+      wpmDisplay.classList.add('in-zone');
+      zoneIndicator.classList.add('perfect');
+      zoneIndicator.textContent = '● target zone ●';
+    } else if (wpm < VISUAL_GREEN_LOW) {
+      wpmDisplay.classList.add('too-slow');
+      zoneIndicator.classList.add('slow');
+      zoneIndicator.textContent = 'too slow — speed up';
+    } else {
+      wpmDisplay.classList.add('too-fast');
+      zoneIndicator.classList.add('fast');
+      zoneIndicator.textContent = 'too fast — slow down!';
+    }
+  }
+
+  // ── Timer display ──
+  function updateTimer() {
+    if (!started || finished) return;
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    timerEl.textContent = elapsed + 's';
+  }
+
+  // ── WPM recalc (every 200ms while typing) ──
+  function recalcWPM() {
+    if (!started || finished) return;
+    const elapsedMin = (Date.now() - startTime) / 60000;
+    if (elapsedMin < 0.02) return; // avoid crazy numbers at start
+    const wpm = (pos / 5) / elapsedMin;
+    updateGauge(wpm);
+    updateTimer();
+  }
+
+  // ── Keyboard handler ──
+  document.addEventListener('keydown', function(e) {
+    if (finished) return;
+
+    // Ignore modifier combos
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+    // Ignore non-printable (except Backspace)
+    if (e.key !== 'Backspace' && e.key.length !== 1) return;
+
+    e.preventDefault();
+
+    // ── Start on first printable key ──
+    if (!started && e.key.length === 1) {
+      started = true;
+      startTime = Date.now();
+      startPrompt.style.display = 'none';
+      textBox.classList.add('active');
+      wpmInterval = setInterval(recalcWPM, 200);
+    }
+
+    if (!started) return;
+
+    // ── Backspace ──
+    if (e.key === 'Backspace') {
+      // Don't allow backspace — only forward typing
+      // This prevents gaming by waiting then speed-typing
+      return;
+    }
+
+    // ── Check correct character ──
+    const expected = text[pos];
+
+    if (e.key === expected) {
+      // Correct!
+      charSpans[pos].className = 'char correct';
+      keystrokes.push(Date.now());
+      typedChars.push(e.key);
+      pos++;
+
+      // Send signed progress receipt every N characters
+      if (pos > 0 && pos % PROGRESS_EVERY === 0 && sessionToken) {
+        const p = fetch('/api/progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: sessionToken, pos: pos })
+        })
+        .then(r => r.json())
+        .then(data => { if (data.receipt) receipts.push(data.receipt); })
+        .catch(() => {});
+        progressPromises.push(p);
+      }
+
+      if (pos < text.length) {
+        charSpans[pos].className = 'char current';
+      }
+
+      // Done typing?
+      if (pos >= text.length) {
+        finishTyping();
+      }
+    } else {
+      // Wrong key — flash red, stay in place
+      charSpans[pos].classList.add('wrong');
+      charSpans[pos].classList.remove('current');
+      setTimeout(() => {
+        if (!finished && pos < text.length) {
+          charSpans[pos].classList.remove('wrong');
+          charSpans[pos].classList.add('current');
+        }
+      }, 250);
+    }
+  });
+
+  // ── Submit to server ──
+  async function finishTyping() {
+    finished = true;
+    const endTime = Date.now();
+    clearInterval(wpmInterval);
+    textBox.classList.remove('active');
+    textBox.classList.add('done');
+
+    // Final WPM display
+    const elapsedMin = (endTime - startTime) / 60000;
+    const finalWPM = (text.length / 5) / elapsedMin;
+    updateGauge(finalWPM);
+    timerEl.textContent = ((endTime - startTime) / 1000).toFixed(1) + 's (submitting...)';
+
+    // Wait for all pending progress receipts to come back
+    await Promise.allSettled(progressPromises);
+
+    // Send to server with typed text + receipts
+    try {
+      const res = await fetch('/api/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: sessionToken,
+          keystrokes: keystrokes,
+          startTime: startTime,
+          endTime: endTime,
+          typedText: typedChars.join(''),
+          receipts: receipts
+        })
+      });
+
+      timerEl.textContent = ((endTime - startTime) / 1000).toFixed(1) + 's (done)';
+      const data = await res.json();
+      showResult(data);
+    } catch(e) {
+      showResult({ success: false, message: 'Server error. Try again.' });
+    }
+  }
+
+  function showResult(data) {
+    resultBox.className = 'result-box show ' + (data.success ? 'success' : 'fail');
+    resultTitle.className = 'result-title ' + (data.success ? 'success' : 'fail');
+
+    if (data.success) {
+      resultTitle.textContent = '🔓 VAULT OPENED';
+      resultMessage.textContent = data.message;
+      flagText.textContent = data.flag;
+      flagText.style.display = 'block';
+      retryBtn.style.display = 'none';
+
+      // Green confetti
+      launchConfetti();
+    } else {
+      resultTitle.textContent = '🔒 VAULT LOCKED';
+      resultMessage.textContent = data.message || 'Try again — aim for exactly 35 WPM.';
+      flagText.style.display = 'none';
+      retryBtn.style.display = 'inline-block';
+    }
+  }
+
+  // ── Retry ──
+  retryBtn.addEventListener('click', function() {
+    pos = 0;
+    started = false;
+    finished = false;
+    startTime = 0;
+    keystrokes = [];
+    receipts = [];
+    progressPromises = [];
+    typedChars = [];
+    clearInterval(wpmInterval);
+
+    resultBox.className = 'result-box';
+    textBox.classList.remove('active', 'done');
+    startPrompt.style.display = 'block';
+    timerEl.textContent = '';
+
+    wpmDisplay.textContent = '0';
+    wpmDisplay.className = 'wpm-display';
+    gaugeNeedle.style.left = '0%';
+    zoneIndicator.textContent = 'waiting...';
+    zoneIndicator.className = 'zone-indicator';
+
+    // Get fresh session + paragraph
+    initSession();
+  });
+
+  // ── Confetti ──
+  function launchConfetti() {
+    const colors = ['#39ff14','#00e5ff','#ff8800','#ff2d7b','#ffe136','#aa44ff'];
+    for (let i = 0; i < 40; i++) {
+      const p = document.createElement('div');
+      p.style.cssText = `
+        position:fixed; z-index:9998; pointer-events:none;
+        left:${Math.random()*100}vw; top:-10px;
+        width:${5+Math.random()*7}px; height:${5+Math.random()*7}px;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        border-radius:${Math.random()>0.5?'50%':'0'};
+        animation: conf-drop ${2+Math.random()*3}s linear ${Math.random()}s forwards;
+      `;
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 6000);
+    }
+  }
+
+  // Confetti animation (inject once)
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes conf-drop {
+      0% { opacity:1; transform: translateY(0) rotate(0deg); }
+      100% { opacity:0; transform: translateY(110vh) rotate(720deg); }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // ── Start ──
+  initSession();
+})();
+</script>
+
+</body>
+</html>
